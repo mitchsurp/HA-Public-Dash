@@ -1,0 +1,13 @@
+node_modules/
+.DS_Store
+.claude/
+*.tar
+data/
+backend/node_modules/
+frontend/node_modules/
+admin/node_modules/
+.env
+config.json
+feedback.json
+uploads/
+backups/

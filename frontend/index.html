@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+<!-- ANALYTICS_PLACEHOLDER -->
+<style>
+  :root {
+    --accent: #03a9f4;
+    --accent-dim: rgba(3,169,244,0.12);
+    --radius: 12px;
+    --mono: 'DM Mono', monospace;
+    --font: 'Roboto', 'Inter', sans-serif;
+
+    /* Dark mode defaults (Lovelace Dark) */
+    --bg: #111111;
+    --surface: #1c1c1c;
+    --surface-hover: #242424;
+    --border: rgba(255,255,255,0.12);
+    --text: #e1e1e1;
+    --text-secondary: #9b9b9b;
+    --text-muted: #6f6f6f;
+    --shadow: 0px 2px 1px -1px rgba(0,0,0,0.2), 0px 1px 1px 0px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12);
+    --header-bg: #111111;
+    --header-border: rgba(255,255,255,0.1);
+    --ripple: rgba(255,255,255,0.1);
+    --bg-dim: 0.35;
+    --state-on: #fdd835;
+    --state-off: #44739e;
+  }
+
+  html.light {
+    --bg: #f5f5f5;
+    --surface: #ffffff;
+    --surface-hover: #fafafa;
+    --border: rgba(0,0,0,0.12);
+    --text: #212121;
+    --text-secondary: #727272;
+    --text-muted: #9e9e9e;
+    --shadow: 0px 2px 1px -1px rgba(0,0,0,0.2), 0px 1px 1px 0px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12);
+    --header-bg: #ffffff;
+    --header-border: rgba(0,0,0,0.1);
+    --ripple: rgba(0,0,0,0.05);
+    --bg-dim: 0.6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    min-height: 100vh;
+    background: var(--bg);
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+    color: var(--text);
+    transition: background-color 0.3s, color 0.3s;
+  }
+
+  body.has-bg::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: inherit;
+    background-size: cover;
+    background-position: center;
+    filter: brightness(var(--bg-dim));
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── Header ────────────────────────────────────────────────────────────────── */
+  .ha-header {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--header-border);
+    padding: 0 20px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .ha-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Page ──────────────────────────────────────────────────────────────────── */
+  .page {
+    position: relative; z-index: 1;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 16px 16px 48px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Section labels ────────────────────────────────────────────────────────── */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin: 20px 0 8px;
+    padding: 0 2px;
+    width: 100%;
+  }
+
+  /* ── Card grid ─────────────────────────────────────────────────────────────── */
+  .card-row {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 8px;
+    grid-template-columns: repeat(var(--row-cols, 1), 1fr);
+  }
+
+  /* ── Base card ─────────────────────────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+    min-height: 80px;
+    color: var(--text);
+  }
+  .card.no-action { cursor: default; }
+  .card:not(.no-action):hover {
+    background: var(--surface-hover);
+  }
+  .card:not(.no-action):active { transform: scale(0.98); }
+
+  .card.active {
+    /* Lovelace active state usually affects icon color more than the card itself */
+  }
+
+  .card-icon {
+    font-size: 24px;
+    width: 40px; height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--accent-dim);
+    color: var(--accent);
+    transition: color 0.2s, background 0.2s;
+  }
+  .card.active .card-icon {
+    background: var(--state-on);
+    color: #fff;
+  }
+
+  /* ── Card content ──────────────────────────────────────────────────────────── */
+  .card-top-label {
+    font-size: 13px; font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  .card-value-row { display: flex; align-items: baseline; gap: 4px; }
+  .card-value {
+    font-size: 24px;
+    font-weight: 400; color: var(--text);
+    line-height: 1.2;
+  }
+  .card-unit {
+    font-size: 14px;
+    font-weight: 400; color: var(--text-secondary);
+  }
+  .card-label {
+    font-size: 14px; font-weight: 500;
+    color: var(--text); line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card-state {
+    font-size: 12px; color: var(--text-secondary);
+    text-transform: capitalize;
+  }
+
+  .card-sub {
+    margin-top: auto;
+    font-size: 11px;
+    color: var(--text-secondary);
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-sub-label {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-right: 8px;
+  }
+  .card-sub-value {
+    font-family: var(--mono);
+    color: var(--text);
+  }
+
+  /* ── Color cards ───────────────────────────────────────────────────────────── */
+  .card.color-card {
+    padding: 0;
+    min-height: 56px;
+    background: var(--card-fill, #888);
+    border-color: rgba(255,255,255,0.15);
+  }
+  .card.color-card .card-label {
+    position: absolute; bottom: 8px; left: 0; right: 0;
+    text-align: center; color: rgba(255,255,255,0.95);
+    font-size: 11px; font-weight: 600;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Image cards ───────────────────────────────────────────────────────────── */
+  .card.has-image {
+    padding: 0; min-height: 80px;
+    background: var(--surface);
+  }
+  .card.has-image img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: calc(var(--radius) - 1px);
+    display: block;
+  }
+  .card.has-image .card-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 24px 12px 10px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    color: #fff; font-size: 12px; font-weight: 600;
+    border-radius: 0 0 calc(var(--radius) - 1px) calc(var(--radius) - 1px);
+  }
+
+  /* ── Link cards ────────────────────────────────────────────────────────────── */
+  .card.link-card .link-favicon {
+    width: 18px; height: 18px;
+    object-fit: contain; border-radius: 3px; flex-shrink: 0;
+  }
+  .card.link-card .link-host {
+    font-size: 11px; color: var(--text-muted);
+    margin-top: auto; font-family: var(--mono);
+  }
+
+  /* ── Ripple ────────────────────────────────────────────────────────────────── */
+  @keyframes ripple { to { transform: scale(5); opacity: 0; } }
+  .ripple {
+    position: absolute; border-radius: 50%;
+    width: 50px; height: 50px;
+    background: var(--ripple);
+    transform: scale(0);
+    animation: ripple 0.45s ease-out forwards;
+    pointer-events: none;
+  }
+
+  /* ── Empty state ───────────────────────────────────────────────────────────── */
+  .empty {
+    text-align: center; color: var(--text-muted);
+    margin-top: 80px; font-size: 14px; line-height: 2;
+  }
+  .empty a { color: var(--accent); text-decoration: none; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .card, .section-label { animation: fadeUp 0.25s ease both; }
+
+  /* ── Feedback ────────────────────────────────────────────────────────────── */
+  .feedback-btn {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; z-index: 100; transition: transform 0.2s;
+  }
+  .feedback-btn:hover { transform: scale(1.1); }
+
+  .modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 1000; backdrop-filter: blur(4px);
+  }
+  .modal.active { display: flex; }
+  .modal-content {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px;
+    width: 90%; max-width: 400px; box-shadow: var(--shadow);
+  }
+  .modal-content h3 { margin-bottom: 12px; }
+  .modal-content textarea {
+    width: 100%; height: 120px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); padding: 12px; font-family: inherit;
+    resize: none; outline: none;
+  }
+  .modal-content textarea:focus { border-color: var(--accent); }
+  .modal-btn {
+    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--text); cursor: pointer;
+    font-size: 14px; font-weight: 500;
+  }
+  .modal-btn.primary { background: var(--accent); border: none; color: #fff; }
+</style>
+</head>
+<body>
+<div class="ha-header">
+  <div class="ha-title" id="site-title">Home</div>
+</div>
+<div class="page">
+  <div id="root"></div>
+  <button class="feedback-btn" onclick="openFeedback()" title="Leave Feedback">💬</button>
+</div>
+
+<div id="feedback-modal" class="modal">
+  <div class="modal-content">
+    <h3>Leave Feedback</h3>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">Tell us what you think! (Max 250 chars)</p>
+    <textarea id="feedback-text" maxlength="250" placeholder="Your feedback..."></textarea>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px">
+      <button class="modal-btn" onclick="closeFeedback()">Cancel</button>
+      <button class="modal-btn primary" onclick="submitFeedback()" id="feedback-submit-btn">Send</button>
+    </div>
+  </div>
+</div>
+<script>
+const POLL_MS = 5000;
+const ACTIVE = new Set(['on','open','unlocked','home','playing','idle','heating','cooling','fan_only','heat_cool','auto']);
+const SENSOR_DOMAINS = new Set(['sensor','binary_sensor','weather','sun']);
+let layout = { items: [], gridCols: 3 };
+let firstRender = true;
+
+function isActive(s) { return ACTIVE.has(s?.toLowerCase()); }
+function isSensor(eid) { return SENSOR_DOMAINS.has(eid?.split('.')[0]); }
+
+function parseValueUnit(state, attributes) {
+  const unit = attributes?.unit_of_measurement || '';
+  if (unit) return { value: state || '—', unit };
+  const m = String(state||'').match(/^([\d.,]+)\s*([a-zA-ZµΩ°%/]+.*)$/);
+  if (m) return { value: m[1], unit: m[2] };
+  return { value: state || '—', unit: '' };
+}
+
+function applyMode(colorMode) {
+  document.documentElement.classList.toggle('light', colorMode === 'light');
+}
+
+function makeEntityCard(item, idx) {
+  const colorCard = !!item.fillColor;
+  const hasImage  = !!item.imageUrl;
+  const sensor    = isSensor(item.entity_id) || !item.service;
+  const active    = isActive(item.state);
+
+  const el = document.createElement('div');
+  el.dataset.eid = item.entity_id;
+  el.style.animationDelay = `${idx * 25}ms`;
+
+  if (colorCard) {
+    el.className = 'card color-card';
+    el.style.setProperty('--card-fill', item.fillColor);
+    if (item.label) el.innerHTML = `<div class="card-label">${item.label}</div>`;
+    el.addEventListener('click', ev => triggerAction(item.entity_id, el, ev));
+    return el;
+  }
+
+  if (hasImage) {
+    el.className = 'card has-image';
+    el.innerHTML = `<img src="${item.imageUrl}" alt="${item.label}" loading="lazy">
+      ${item.label ? `<div class="card-label">${item.label}</div>` : ''}`;
+    if (!sensor) el.addEventListener('click', ev => triggerAction(item.entity_id, el, ev));
+    else el.classList.add('no-action');
+    return el;
+  }
+
+  el.className = `card${sensor ? ' no-action' : ''}${active ? ' active' : ''}`;
+  el.style.justifyContent = item.contentJustify || 'flex-start';
+  if (item.labelAlign === 'center') el.style.alignItems = 'center';
+  else if (item.labelAlign === 'right') el.style.alignItems = 'flex-end';
+
+  const iconHtml = item.icon?.startsWith('mdi') ? `<span class="${item.icon}"></span>` : (item.icon || '');
+  const iconHeaderHtml = iconHtml ? `<div class="card-header-row" style="justify-content:inherit"><div class="card-icon">${iconHtml}</div></div>` : '';
+  
+  const labelPos = item.labelPosition || 'default';
+  const labelText = item.label || (sensor ? item.entity_id : '');
+  const labelHtml = labelText ? `<div class="${sensor ? 'card-top-label' : 'card-label'}" style="font-size:${item.fontSize||(sensor?13:14)}px;text-align:${item.labelAlign||'left'};width:100%">${labelText}</div>` : '';
+
+  let subHtml = '';
+  if (item.sub_entity_id) {
+    const { value: subVal, unit: subUnit } = parseValueUnit(item.sub_state, item.sub_attributes);
+    subHtml = `<div class="card-sub" data-sub-eid="${item.sub_entity_id}" style="width:100%">
+      <span class="card-sub-label">${item.sub_entity_id.split('.')[1]}</span>
+      <span class="card-sub-value">${subVal}${subUnit}</span>
+    </div>`;
+  }
+
+  if (sensor) {
+    const { value, unit } = parseValueUnit(item.state, item.attributes);
+    const contentHtml = `
+      <div class="card-value-row" style="justify-content:inherit;width:100%">
+        <span class="card-value" data-eid-val="${item.entity_id}">${value}</span>
+        ${unit ? `<span class="card-unit">${unit}</span>` : ''}
+      </div>`;
+    
+    let html = '';
+    if (labelPos === 'top') {
+      html = `${labelHtml}${iconHeaderHtml}${contentHtml}`;
+    } else if (labelPos === 'bottom') {
+      html = `${iconHeaderHtml}${contentHtml}${labelHtml}`;
+    } else { // default
+      html = `${iconHeaderHtml}<div style="width:100%">${labelHtml}${contentHtml}</div>`;
+    }
+    el.innerHTML = html + subHtml;
+  } else {
+    const stateHtml = `<div class="card-state" style="text-align:inherit;width:100%">${item.state || ''}</div>`;
+    
+    let html = '';
+    if (labelPos === 'top') {
+      html = `${labelHtml}${iconHeaderHtml}${stateHtml}`;
+    } else if (labelPos === 'bottom') {
+      html = `${iconHeaderHtml}${stateHtml}${labelHtml}`;
+    } else { // default
+      html = `${iconHeaderHtml}<div style="width:100%">${labelHtml}${stateHtml}</div>`;
+    }
+    el.innerHTML = html + subHtml;
+    el.addEventListener('click', ev => triggerAction(item.entity_id, el, ev));
+  }
+  return el;
+}
+
+function makeLinkCard(item, idx) {
+  const hasImage = !!item.imageUrl;
+  const el = document.createElement('div');
+  el.style.animationDelay = `${idx * 25}ms`;
+
+  if (hasImage) {
+    el.className = 'card has-image';
+    el.innerHTML = `<img src="${item.imageUrl}" alt="${item.label}" loading="lazy">
+      ${item.label ? `<div class="card-label">${item.label}</div>` : ''}`;
+  } else {
+    el.className = 'card link-card';
+    el.style.justifyContent = item.contentJustify || 'flex-start';
+    if (item.labelAlign === 'center') el.style.alignItems = 'center';
+    else if (item.labelAlign === 'right') el.style.alignItems = 'flex-end';
+    
+    let iconHtml;
+    if (item.favicon) {
+      iconHtml = `<img class="link-favicon" src="${item.favicon}" onerror="this.parentElement.innerHTML='🔗'" alt="">`;
+    } else {
+      iconHtml = item.icon?.startsWith('mdi') ? `<span class="${item.icon}"></span>` : (item.icon || '');
+    }
+
+    let hostname = '';
+    try { hostname = new URL(item.url||'https://').hostname; } catch {}
+    
+    const labelPos = item.labelPosition || 'default';
+    const labelHtml = `<div class="card-label" style="font-size:${item.fontSize||14}px;text-align:${item.labelAlign||item.textAlign||'left'};width:100%">${item.label}</div>`;
+    const hostHtml = `<div class="link-host" style="font-size:11px;color:var(--text-muted);font-family:var(--mono);text-align:inherit;width:100%">${hostname}</div>`;
+
+    let subHtml = '';
+    if (item.sub_entity_id) {
+      const { value: subVal, unit: subUnit } = parseValueUnit(item.sub_state, item.sub_attributes);
+      subHtml = `<div class="card-sub" data-sub-eid="${item.sub_entity_id}" style="width:100%">
+        <span class="card-sub-label">${item.sub_entity_id.split('.')[1]}</span>
+        <span class="card-sub-value">${sv}${su}</span>
+      </div>`;
+    }
+
+    let html = '';
+    const iconHeaderHtml = iconHtml ? `<div class="card-header-row" style="justify-content:inherit"><div class="card-icon">${iconHtml}</div></div>` : '';
+    
+    if (labelPos === 'top') {
+      html = `${labelHtml}${iconHeaderHtml}${hostHtml}`;
+    } else if (labelPos === 'bottom') {
+      html = `${iconHeaderHtml}${hostHtml}${labelHtml}`;
+    } else { // default
+      html = `${iconHeaderHtml}<div style="display:flex;flex-direction:column;gap:2px;width:100%;text-align:inherit">${labelHtml}${hostHtml}</div>`;
+    }
+    el.innerHTML = html + subHtml;
+  }
+
+  el.addEventListener('click', ev => {
+    ripple(el, ev);
+    if (item.openNewTab !== false) window.open(item.url, '_blank', 'noopener');
+    else window.location.href = item.url;
+  });
+  return el;
+}
+
+function render() {
+  const root = document.getElementById('root');
+  if (!layout.items.length) {
+    root.innerHTML = `<div class="empty">No entities configured<br><a href="/admin/">Open admin to get started →</a></div>`;
+    return;
+  }
+
+  root.innerHTML = '';
+  const cols = layout.gridCols || 3;
+  let currentRow = null, currentRowCols = 0;
+
+  function flushRow() {
+    if (currentRow && currentRow.children.length) {
+      currentRow.style.setProperty('--row-cols', currentRow.dataset.usedCols || cols);
+      root.appendChild(currentRow);
+    }
+    currentRow = null; currentRowCols = 0;
+  }
+
+  layout.items.forEach((item, idx) => {
+    if (item.type === 'label') {
+      flushRow();
+      const lbl = document.createElement('div');
+      lbl.className = 'section-label';
+      lbl.style.cssText = `color:${item.color||'var(--text-secondary)'};font-size:${Math.min(item.fontSize||11,13)}px;animation-delay:${idx*25}ms`;
+      lbl.textContent = item.text || '';
+      root.appendChild(lbl);
+      return;
+    }
+
+    const itemCols = Math.min(item.colSpan || 1, cols);
+    if (!currentRow || currentRowCols + itemCols > cols) {
+      flushRow();
+      currentRow = document.createElement('div');
+      currentRow.className = 'card-row';
+      currentRow.dataset.usedCols = String(cols);
+    }
+
+    let cardEl;
+    if (item.type === 'link') cardEl = makeLinkCard(item, idx);
+    else cardEl = makeEntityCard(item, idx);
+
+    if (itemCols > 1) cardEl.style.gridColumn = `span ${itemCols}`;
+    if ((item.rowSpan||1) > 1) cardEl.style.gridRow = `span ${item.rowSpan}`;
+
+    currentRow.appendChild(cardEl);
+    currentRowCols += itemCols;
+  });
+  flushRow();
+}
+
+function updateLive(items) {
+  items.forEach(item => {
+    if (item.type === 'entity') {
+      const valEl = document.querySelector(`[data-eid-val="${item.entity_id}"]`);
+      if (valEl) valEl.textContent = parseValueUnit(item.state, item.attributes).value;
+      const card = document.querySelector(`.card[data-eid="${item.entity_id}"]`);
+      if (card) {
+        card.classList.toggle('active', isActive(item.state));
+        const stateEl = card.querySelector('.card-state');
+        if (stateEl) stateEl.textContent = item.state || '';
+      }
+    }
+    
+    // Update sub-entities if they exist on this card or any other card
+    if (item.sub_entity_id) {
+      const subValEls = document.querySelectorAll(`[data-sub-eid="${item.sub_entity_id}"] .card-sub-value`);
+      const { value: sv, unit: su } = parseValueUnit(item.sub_state, item.sub_attributes);
+      subValEls.forEach(el => el.textContent = `${sv}${su}`);
+    }
+  });
+}
+
+function applyMeta(data) {
+  const title = data.title || 'Home';
+  document.title = title;
+  const titleEl = document.getElementById('site-title');
+  titleEl.textContent = title;
+  if (data.font) titleEl.style.fontFamily = data.font;
+
+  const bg = data.resolvedBg || data.bgImage || '';
+  document.body.style.backgroundImage = bg ? `url('${bg}')` : '';
+  document.body.classList.toggle('has-bg', !!bg);
+  applyMode(data.colorMode);
+}
+
+async function poll() {
+  try {
+    const r = await fetch('/api/public/layout');
+    const data = await r.json();
+    const needRender = firstRender
+      || data.gridCols  !== layout.gridCols
+      || data.title     !== layout.title
+      || data.resolvedBg !== layout.resolvedBg
+      || data.colorMode !== layout.colorMode
+      || (data.items?.length !== layout.items?.length);
+    layout = data;
+    applyMeta(data);
+    if (needRender) { firstRender = false; render(); }
+    else updateLive(data.items || []);
+  } catch(e) { console.warn('Poll failed:', e.message); }
+}
+
+function ripple(card, ev) {
+  const r = document.createElement('div');
+  r.className = 'ripple';
+  const rect = card.getBoundingClientRect();
+  r.style.left = (ev.clientX - rect.left - 25) + 'px';
+  r.style.top  = (ev.clientY - rect.top  - 25) + 'px';
+  card.appendChild(r);
+  setTimeout(() => r.remove(), 600);
+}
+
+async function triggerAction(eid, card, ev) {
+  ripple(card, ev);
+  try {
+    await fetch(`/api/public/action/${eid}`, { method: 'POST' });
+    setTimeout(poll, 400);
+  } catch(e) { console.warn('Action failed:', e.message); }
+}
+
+// ── Feedback ──────────────────────────────────────────────────────────────────
+function openFeedback() {
+  document.getElementById('feedback-modal').classList.add('active');
+  document.getElementById('feedback-text').focus();
+}
+function closeFeedback() {
+  document.getElementById('feedback-modal').classList.remove('active');
+  document.getElementById('feedback-text').value = '';
+}
+async function submitFeedback() {
+  const text = document.getElementById('feedback-text').value.trim();
+  if (!text) return;
+  const btn = document.getElementById('feedback-submit-btn');
+  const oldText = btn.textContent;
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/api/public/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (r.ok) {
+      alert('Feedback sent! Thank you.');
+      closeFeedback();
+    } else {
+      const d = await r.json();
+      alert('Error: ' + d.error);
+    }
+  } catch(e) {
+    alert('Failed to send feedback');
+  } finally {
+    btn.textContent = oldText;
+    btn.disabled = false;
+  }
+}
+
+poll();
+setInterval(poll, POLL_MS);
+</script>
+</body>
+</html>
