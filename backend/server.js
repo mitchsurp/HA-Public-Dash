@@ -240,6 +240,7 @@ app.post("/api/public/feedback", async (req, res) => {
     ts: new Date().toISOString(),
     ip: req.ip || req.headers["x-forwarded-for"] || "unknown",
     text: text.trim(),
+    likes: 0,
   };
 
   const list = loadFeedback();
@@ -269,6 +270,21 @@ app.post("/api/public/feedback", async (req, res) => {
   res.json({ ok: true });
 });
 
+
+// ── Public: guestbook ─────────────────────────────────────────────────────────
+app.get("/api/public/guestbook", (req, res) => {
+  const list = loadFeedback();
+  res.json(list.map(({ ip: _ip, ...rest }) => rest));
+});
+
+app.post("/api/public/guestbook/:id/like", (req, res) => {
+  const list = loadFeedback();
+  const entry = list.find(f => f.id === req.params.id);
+  if (!entry) return res.status(404).json({ error: "Not found" });
+  entry.likes = (entry.likes || 0) + 1;
+  saveFeedback(list);
+  res.json({ ok: true, likes: entry.likes });
+});
 
 // ── Admin: get layout ─────────────────────────────────────────────────────────
 app.get("/api/admin/layout", requireAdmin, (req, res) => {
@@ -369,7 +385,7 @@ app.get("/api/public/layout", async (req, res) => {
     const { analyticsCode: _a, ...safe } = layout;
     return res.json({ ...safe, resolvedBg });
   }
-  const entityItems = layout.items.filter(i => i.type === "entity" && i.entity_id);
+  const entityItems = layout.items.filter(i => (i.type === "entity" || i.type === "gauge") && i.entity_id);
   const subEntities = layout.items.filter(i => i.sub_entity_id).map(i => i.sub_entity_id);
   const allNeededIds = [...new Set([...entityItems.map(e => e.entity_id), ...subEntities])];
 
@@ -386,7 +402,7 @@ app.get("/api/public/layout", async (req, res) => {
     const stateMap = Object.fromEntries(states.map(s => [s.entity_id, s]));
     const items = layout.items.map(item => {
       let processed = { ...item };
-      if (item.type === "entity" && item.entity_id) {
+      if ((item.type === "entity" || item.type === "gauge") && item.entity_id) {
         const live = stateMap[item.entity_id] || {};
         processed.state = live.state;
         processed.attributes = live.attributes;

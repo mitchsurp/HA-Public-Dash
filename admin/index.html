@@ -239,6 +239,7 @@
   .layout-item.type-label  { border-left: 3px solid #818cf8; }
   .layout-item.type-entity { border-left: 3px solid var(--accent); }
   .layout-item.type-link   { border-left: 3px solid #f59e0b; }
+  .layout-item.type-gauge  { border-left: 3px solid #22c55e; }
   .drag-handle {
     display: flex; align-items: center; justify-content: center;
     cursor: grab; color: var(--muted); font-size: 13px;
@@ -255,6 +256,7 @@
   .badge-entity { background: var(--accent-dim); color: var(--accent); }
   .badge-label  { background: rgba(129,140,248,0.15); color: #818cf8; }
   .badge-link   { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .badge-gauge  { background: rgba(34,197,94,0.15);  color: #22c55e; }
   .item-eid { font-family: var(--mono); font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .item-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 8px; margin-top: 6px; }
   .item-fields label { margin-bottom: 3px; }
@@ -588,6 +590,7 @@
     <button class="secondary" onclick="addLabelItem()">+ Section</button>
     <button class="secondary" onclick="addColorItem()">+ Color Button</button>
     <button class="secondary" onclick="addLinkItem()">+ Link</button>
+    <button class="secondary" onclick="addGaugeItem()">+ Gauge</button>
     <button class="secondary" onclick="addMoreEntities()">+ Entities</button>
   </div>
   <div class="layout-list" id="layout-list"><div class="empty-layout">No items yet</div></div>
@@ -886,6 +889,10 @@ function addLinkItem() {
   layoutItems.push({ id: uid(), type: 'link', label: 'My Link', url: 'https://', favicon: '', color: '#f59e0b', sub_entity_id: '', colSpan: 1, rowSpan: 1, labelAlign: 'left', labelPosition: 'default', contentJustify: 'flex-start', fontSize: '14', imageUrl: '', openNewTab: true });
   openLayout();
 }
+function addGaugeItem() {
+  layoutItems.push({ id: uid(), type: 'gauge', entity_id: '', label: 'Gauge', maxValue: 8000, unit: 'W', icon: 'mdi mdi-gauge', colSpan: 3, rowSpan: 1 });
+  openLayout();
+}
 function openLayout() { renderLayoutEditor(); document.getElementById('layout-panel').style.display = 'block'; }
 
 // ── Visual Editor Logic ───────────────────────────────────────────────────────
@@ -972,6 +979,44 @@ async function renderVisualEditor() {
 }
 
 function makePreviewCard(item) {
+  if (item.type === 'gauge') {
+    const el = document.createElement('div');
+    el.className = 'card gauge-card no-action';
+    el.style.cssText = 'flex-direction:row;align-items:center;padding:12px 16px;gap:14px';
+    const ARC = Math.PI * 44;
+    const gradId = `pg-${item.id}`;
+    const maxV = item.maxValue || 8000;
+    const unit = item.unit || 'W';
+    const maxLabel = maxV >= 1000 ? `${(maxV/1000).toFixed(0)} k${unit}` : `${maxV} ${unit}`;
+    el.innerHTML = `
+      <div style="flex-shrink:0;width:88px;position:relative">
+        <svg style="width:100%;display:block;overflow:visible" viewBox="-55 -50 110 52" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#60a5fa"/>
+              <stop offset="45%" stop-color="#fbbf24"/>
+              <stop offset="100%" stop-color="#f97316"/>
+            </linearGradient>
+          </defs>
+          <path d="M -44 0 A 44 44 0 0 1 44 0" fill="none" stroke="var(--border)" stroke-width="7" stroke-linecap="round"/>
+          <path d="M -44 0 A 44 44 0 0 1 44 0" fill="none" stroke="url(#${gradId})" stroke-width="7" stroke-linecap="round"
+                stroke-dasharray="${ARC.toFixed(2)}" stroke-dashoffset="${(ARC * 0.45).toFixed(2)}"/>
+        </svg>
+        <span class="${item.icon || 'mdi mdi-gauge'}" style="position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);font-size:18px;color:#fbbf24"></span>
+      </div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+        <div style="display:flex;align-items:baseline;gap:4px">
+          <span style="font-size:32px;font-weight:300;color:var(--text)">--</span>
+          <span style="font-size:14px;color:var(--text-secondary)">${unit}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <span style="font-size:13px;font-weight:500;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.label || 'Gauge'}</span>
+          <span style="font-size:11px;color:var(--text-muted);font-family:monospace;flex-shrink:0">0% of ${maxLabel}</span>
+        </div>
+      </div>`;
+    return el;
+  }
+
   const colorCard = !!item.fillColor;
   const hasImage  = !!item.imageUrl;
   const isSensor  = (item.entity_id || '').startsWith('sensor.') || (item.entity_id || '').startsWith('binary_sensor.');
@@ -1110,6 +1155,18 @@ function selectItemForEdit(id) {
       <label>Font Size (px)</label><input type="number" value="${item.fontSize || 24}" oninput="ui('${item.id}','fontSize',this.value)">
       ${cf('Color', 'color', item.color || '#9aa0ae')}
       ${spanFields}`;
+  } else if (item.type === 'gauge') {
+    const sensorOpts = ['<option value="">(none selected)</option>',
+      ...allEntities.filter(e => e.entity_id.startsWith('sensor.')).sort((a,b) => a.entity_id.localeCompare(b.entity_id))
+        .map(e => `<option value="${e.entity_id}"${item.entity_id === e.entity_id ? ' selected' : ''}>${e.entity_id}</option>`)
+    ].join('');
+    fields = `
+      <label>Entity (sensor)</label><select onchange="ui('${item.id}','entity_id',this.value)">${sensorOpts}</select>
+      <label>Label</label><input type="text" value="${esc(item.label || '')}" oninput="ui('${item.id}','label',this.value)">
+      <label>Max Value</label><input type="number" min="1" value="${item.maxValue || 8000}" oninput="ui('${item.id}','maxValue',+this.value)">
+      <label>Unit</label><input type="text" value="${esc(item.unit || 'W')}" oninput="ui('${item.id}','unit',this.value)" placeholder="W">
+      <label>Icon (MDI class)</label><input type="text" value="${esc(item.icon || 'mdi mdi-gauge')}" oninput="ui('${item.id}','icon',this.value)" placeholder="mdi mdi-gauge">
+      ${spanFields}`;
   } else {
     fields = `
       <label>Label</label><input type="text" value="${esc(item.label)}" oninput="ui('${item.id}','label',this.value)">
@@ -1157,8 +1214,8 @@ function renderLayoutEditor() {
     const colFill  = Math.min(item.colSpan || 1, cols);
     const rowFill  = item.rowSpan || 1;
     const spanCells = Array.from({ length: cols }, (_, i) => `<div class="sp-cell${i < colFill ? ' on' : ''}"></div>`).join('');
-    const badge    = item.type === 'entity' ? 'badge-entity' : item.type === 'label' ? 'badge-label' : 'badge-link';
-    const displayName = item.type === 'entity' ? (item.entity_id || 'color button') : item.type === 'label' ? (item.text || 'label') : (item.label || item.url || 'link');
+    const badge    = item.type === 'entity' ? 'badge-entity' : item.type === 'label' ? 'badge-label' : item.type === 'gauge' ? 'badge-gauge' : 'badge-link';
+    const displayName = item.type === 'entity' ? (item.entity_id || 'color button') : item.type === 'label' ? (item.text || 'label') : item.type === 'gauge' ? (item.label || item.entity_id || 'gauge') : (item.label || item.url || 'link');
     const iconDisplay = item.icon?.startsWith('mdi') ? `<span class="${item.icon}" style="font-size:16px;margin-right:4px"></span>` : `<span style="margin-right:4px">${item.icon || ''}</span>`;
 
     const subEntityOptions = ['<option value="">(None)</option>', ...Array.from(selected).sort().map(eid => `<option value="${eid}"${item.sub_entity_id === eid ? ' selected' : ''}>${eid}</option>`)].join('');
@@ -1230,6 +1287,18 @@ function renderLayoutEditor() {
         <div class="full-width"><label>Text</label><input type="text" value="${esc(item.text)}" oninput="ui('${item.id}','text',this.value);renderLayoutEditor()"></div>
         <div><label>Font Size (px)</label><input type="number" value="${item.fontSize || 24}" min="8" max="72" oninput="ui('${item.id}','fontSize',this.value)"></div>
         ${cf('Color', 'color', item.color || '#9aa0ae')}
+        ${spanFields}`;
+    } else if (item.type === 'gauge') {
+      const sensorOpts = ['<option value="">(none selected)</option>',
+        ...allEntities.filter(e => e.entity_id.startsWith('sensor.')).sort((a,b) => a.entity_id.localeCompare(b.entity_id))
+          .map(e => `<option value="${e.entity_id}"${item.entity_id === e.entity_id ? ' selected' : ''}>${e.entity_id}</option>`)
+      ].join('');
+      fields = `
+        <div class="full-width"><label>Entity (sensor)</label><select onchange="ui('${item.id}','entity_id',this.value);renderLayoutEditor()">${sensorOpts}</select></div>
+        <div class="full-width"><label>Label</label><input type="text" value="${esc(item.label || '')}" oninput="ui('${item.id}','label',this.value);renderLayoutEditor()"></div>
+        <div><label>Max Value</label><input type="number" min="1" value="${item.maxValue || 8000}" oninput="ui('${item.id}','maxValue',+this.value);renderLayoutEditor()"></div>
+        <div><label>Unit</label><input type="text" value="${esc(item.unit || 'W')}" oninput="ui('${item.id}','unit',this.value);renderLayoutEditor()" placeholder="W"></div>
+        <div class="full-width"><label>Icon (MDI class)</label><input type="text" value="${esc(item.icon || 'mdi mdi-gauge')}" oninput="ui('${item.id}','icon',this.value);renderLayoutEditor()" placeholder="mdi mdi-gauge"></div>
         ${spanFields}`;
     } else {
       fields = `
@@ -1484,12 +1553,14 @@ async function loadFeedbackList() {
     }
     list.innerHTML = items.map(f => {
       const dt = new Date(f.ts).toLocaleString();
+      const likes = f.likes || 0;
       return `<div class="backup-row" style="flex-direction:column;align-items:flex-start;gap:4px;padding:12px">
         <div style="display:flex;width:100%;justify-content:space-between;align-items:center">
           <span class="bsize" style="color:var(--accent)">${f.ip} · ${dt}</span>
           <button class="icon-btn" style="color:var(--danger)" title="Delete" onclick="deleteFeedback('${f.id}')">✕</button>
         </div>
         <div style="font-size:12px;line-height:1.4;color:var(--text);white-space:pre-wrap;word-break:break-word">${esc(f.text)}</div>
+        <div style="font-size:11px;color:var(--muted)">♥ ${likes} ${likes === 1 ? 'heart' : 'hearts'}</div>
       </div>`;
     }).join('');
   } catch(e) {

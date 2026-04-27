@@ -286,7 +286,9 @@
 
   /* ── Feedback ────────────────────────────────────────────────────────────── */
   .feedback-btn {
-    position: fixed; bottom: 24px; right: 24px;
+    position: fixed;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    right: calc(24px + env(safe-area-inset-right, 0px));
     width: 48px; height: 48px; border-radius: 50%;
     background: var(--accent); color: #fff;
     border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -295,31 +297,161 @@
   }
   .feedback-btn:hover { transform: scale(1.1); }
 
+  /* flex + overflow-y: auto lets the overlay scroll when the keyboard shrinks the viewport */
   .modal {
     position: fixed; inset: 0; background: rgba(0,0,0,0.7);
-    display: none; align-items: center; justify-content: center;
+    display: none;
     z-index: 1000; backdrop-filter: blur(4px);
+    overflow-y: auto;
+    padding: max(20px, env(safe-area-inset-top, 20px))
+             max(20px, env(safe-area-inset-right, 20px))
+             max(20px, env(safe-area-inset-bottom, 20px))
+             max(20px, env(safe-area-inset-left, 20px));
   }
+  /* margin: auto on the child centers it when space allows; scrolls normally when keyboard is open */
   .modal.active { display: flex; }
   .modal-content {
     background: var(--surface); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 24px;
-    width: 90%; max-width: 400px; box-shadow: var(--shadow);
+    width: 100%; max-width: 400px; box-shadow: var(--shadow);
+    margin: auto;
   }
   .modal-content h3 { margin-bottom: 12px; }
   .modal-content textarea {
     width: 100%; height: 120px; background: var(--bg);
     border: 1px solid var(--border); border-radius: 8px;
     color: var(--text); padding: 12px; font-family: inherit;
+    font-size: 16px; /* prevent iOS Safari auto-zoom on focus */
     resize: none; outline: none;
   }
   .modal-content textarea:focus { border-color: var(--accent); }
   .modal-btn {
-    padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border);
+    min-height: 44px; /* iOS minimum tap target */
+    padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border);
     background: transparent; color: var(--text); cursor: pointer;
     font-size: 14px; font-weight: 500;
   }
   .modal-btn.primary { background: var(--accent); border: none; color: #fff; }
+
+  /* ── Gauge card ─────────────────────────────────────────────────────────── */
+  @keyframes gaugeGlow {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.65; }
+  }
+
+  /* row layout so arc height = card height, not card width */
+  .gauge-card {
+    flex-direction: row; align-items: center;
+    padding: 12px 16px; gap: 14px;
+  }
+
+  .gauge-wrap { flex-shrink: 0; width: 88px; position: relative; }
+
+  .gauge-svg { width: 100%; display: block; overflow: visible; }
+
+  .gauge-icon {
+    position: absolute; top: 35%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px; color: #fbbf24;
+    pointer-events: none; transition: text-shadow 0.5s;
+  }
+  .gauge-icon.generating {
+    animation: gaugeGlow 2.5s ease-in-out infinite;
+    text-shadow: 0 0 10px rgba(251,191,36,0.65);
+  }
+
+  .gauge-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+
+  .gauge-reading { display: flex; align-items: baseline; gap: 4px; }
+
+  .gauge-value {
+    font-size: 32px; font-weight: 300; line-height: 1;
+    font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
+    color: var(--text); transition: color 0.6s;
+  }
+  .gauge-value.generating { color: #fbbf24; }
+
+  .gauge-unit { font-size: 14px; color: var(--text-secondary); line-height: 1; }
+
+  .gauge-meta {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+
+  .gauge-name {
+    font-size: 13px; font-weight: 500; color: var(--text-secondary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .gauge-pct { font-size: 11px; color: var(--text-muted); font-family: var(--mono); flex-shrink: 0; }
+
+  /* ── Guestbook ───────────────────────────────────────────────────────────── */
+  .guestbook-list {
+    max-height: 55vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0 -4px;
+    padding: 4px 4px 0;
+  }
+  .gb-entry {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .gb-entry-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: 8px;
+  }
+  .gb-entry-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .gb-entry-time {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+  }
+  .gb-like-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-secondary);
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    line-height: 1;
+    font-family: inherit;
+  }
+  .gb-like-btn:hover { border-color: #e91e63; color: #e91e63; }
+  .gb-like-btn.liked { background: rgba(233,30,99,0.12); border-color: #e91e63; color: #e91e63; }
+  .gb-empty {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 32px 0;
+  }
+  .gb-open-link {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-family: inherit;
+  }
 </style>
 </head>
 <body>
@@ -339,6 +471,25 @@
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px">
       <button class="modal-btn" onclick="closeFeedback()">Cancel</button>
       <button class="modal-btn primary" onclick="submitFeedback()" id="feedback-submit-btn">Send</button>
+    </div>
+    <div style="text-align:center;margin-top:10px">
+      <button class="gb-open-link" onclick="closeFeedback();openGuestbook()">See Guestbook</button>
+    </div>
+  </div>
+</div>
+
+<div id="guestbook-modal" class="modal">
+  <div class="modal-content" style="max-width:460px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <h3>Guestbook</h3>
+      <button class="modal-btn" onclick="closeGuestbook()" style="padding:6px 12px;min-height:36px;font-size:16px">✕</button>
+    </div>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">What people are saying about this dashboard</p>
+    <div id="guestbook-list" class="guestbook-list">
+      <div class="gb-empty">Loading…</div>
+    </div>
+    <div style="margin-top:16px;text-align:center">
+      <button class="modal-btn" onclick="closeGuestbook();openFeedback()" style="font-size:13px">Leave your own feedback →</button>
     </div>
   </div>
 </div>
@@ -505,6 +656,66 @@ function makeLinkCard(item, idx) {
   return el;
 }
 
+function makeGaugeCard(item, idx) {
+  const el = document.createElement('div');
+  el.className = 'card gauge-card no-action';
+  el.dataset.eid = item.entity_id;
+  el.dataset.gaugeMax = item.maxValue || 8000;
+  el.style.animationDelay = `${idx * 25}ms`;
+
+  const maxV       = item.maxValue || 8000;
+  const val        = parseFloat(item.state) || 0;
+  const pct        = Math.min(val / maxV, 1);
+  const ARC        = Math.PI * 44;
+  const offset     = (ARC * (1 - pct)).toFixed(2);
+  const gradId     = `gg-${item.id || idx}`;
+  const glowId     = `gg-glow-${item.id || idx}`;
+  const generating = val > 0;
+  const unit       = item.unit || item.attributes?.unit_of_measurement || 'W';
+  const iconClass  = item.icon || 'mdi mdi-gauge';
+  const maxLabel   = maxV >= 1000 ? `${(maxV/1000).toFixed(0)} k${unit}` : `${maxV} ${unit}`;
+
+  el.dataset.gaugeUnit = unit;
+
+  el.innerHTML = `
+    <div class="gauge-wrap">
+      <svg class="gauge-svg" viewBox="-55 -50 110 52" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="#60a5fa"/>
+            <stop offset="45%"  stop-color="#fbbf24"/>
+            <stop offset="100%" stop-color="#f97316"/>
+          </linearGradient>
+          <filter id="${glowId}" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <path d="M -44 0 A 44 44 0 0 1 44 0"
+              fill="none" stroke="var(--border)" stroke-width="7" stroke-linecap="round"/>
+        <path class="gauge-arc" d="M -44 0 A 44 44 0 0 1 44 0"
+              fill="none" stroke="url(#${gradId})" stroke-width="7" stroke-linecap="round"
+              filter="url(#${glowId})"
+              stroke-dasharray="${ARC.toFixed(2)}"
+              stroke-dashoffset="${offset}"
+              style="transition: stroke-dashoffset 1s ease"/>
+      </svg>
+      <span class="${iconClass} gauge-icon${generating ? ' generating' : ''}"></span>
+    </div>
+    <div class="gauge-info">
+      <div class="gauge-reading">
+        <span class="gauge-value${generating ? ' generating' : ''}" data-gauge-val="${item.entity_id}">${val > 0 ? Math.round(val).toLocaleString() : '0'}</span>
+        <span class="gauge-unit">${unit}</span>
+      </div>
+      <div class="gauge-meta">
+        <span class="gauge-name">${item.label || 'Gauge'}</span>
+        <span class="gauge-pct" data-gauge-pct="${item.entity_id}">${(pct * 100).toFixed(0)}% of ${maxLabel}</span>
+      </div>
+    </div>`;
+
+  return el;
+}
+
 function render() {
   const root = document.getElementById('root');
   if (!layout.items.length) {
@@ -544,7 +755,8 @@ function render() {
     }
 
     let cardEl;
-    if (item.type === 'link') cardEl = makeLinkCard(item, idx);
+    if (item.type === 'gauge') cardEl = makeGaugeCard(item, idx);
+    else if (item.type === 'link') cardEl = makeLinkCard(item, idx);
     else cardEl = makeEntityCard(item, idx);
 
     if (itemCols > 1) cardEl.style.gridColumn = `span ${itemCols}`;
@@ -574,6 +786,28 @@ function updateLive(items) {
       const subValEls = document.querySelectorAll(`[data-sub-eid="${item.sub_entity_id}"] .card-sub-value`);
       const { value: sv, unit: su } = parseValueUnit(item.sub_state, item.sub_attributes);
       subValEls.forEach(el => el.textContent = `${sv}${su}`);
+    }
+
+    if (item.type === 'gauge') {
+      const card = document.querySelector(`.gauge-card[data-eid="${item.entity_id}"]`);
+      if (!card) return;
+      const maxV       = parseFloat(card.dataset.gaugeMax) || 8000;
+      const v          = parseFloat(item.state) || 0;
+      const pct        = Math.min(v / maxV, 1);
+      const ARC        = Math.PI * 44;
+      const arc        = card.querySelector('.gauge-arc');
+      const generating = v > 0;
+      if (arc) arc.setAttribute('stroke-dashoffset', (ARC * (1 - pct)).toFixed(2));
+      const pctEl = card.querySelector('[data-gauge-pct]');
+      if (pctEl) {
+        const unit = card.dataset.gaugeUnit || 'W';
+        const maxLabel = maxV >= 1000 ? `${(maxV/1000).toFixed(0)} k${unit}` : `${maxV} ${unit}`;
+        pctEl.textContent = `${(pct * 100).toFixed(0)}% of ${maxLabel}`;
+      }
+      const valEl = card.querySelector('[data-gauge-val]');
+      if (valEl) valEl.textContent = v > 0 ? Math.round(v).toLocaleString() : '0';
+      card.querySelector('.gauge-icon')?.classList.toggle('generating', generating);
+      card.querySelector('.gauge-value')?.classList.toggle('generating', generating);
     }
   });
 }
@@ -626,6 +860,8 @@ async function triggerAction(eid, card, ev) {
   } catch(e) { console.warn('Action failed:', e.message); }
 }
 
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 // ── Feedback ──────────────────────────────────────────────────────────────────
 function openFeedback() {
   document.getElementById('feedback-modal').classList.add('active');
@@ -662,6 +898,75 @@ async function submitFeedback() {
     btn.textContent = oldText;
     btn.disabled = false;
   }
+}
+
+// ── Guestbook ─────────────────────────────────────────────────────────────────
+const GB_LIKED_KEY = 'gb_liked_v1';
+
+function gbGetLiked() {
+  try { return new Set(JSON.parse(localStorage.getItem(GB_LIKED_KEY) || '[]')); }
+  catch { return new Set(); }
+}
+
+function gbSetLiked(s) {
+  localStorage.setItem(GB_LIKED_KEY, JSON.stringify([...s]));
+}
+
+function gbFormatTime(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+    + ' · ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
+function openGuestbook() {
+  document.getElementById('guestbook-modal').classList.add('active');
+  loadGuestbook();
+}
+
+function closeGuestbook() {
+  document.getElementById('guestbook-modal').classList.remove('active');
+}
+
+async function loadGuestbook() {
+  const list = document.getElementById('guestbook-list');
+  list.innerHTML = '<div class="gb-empty">Loading…</div>';
+  try {
+    const r = await fetch('/api/public/guestbook');
+    const entries = await r.json();
+    if (!entries.length) {
+      list.innerHTML = '<div class="gb-empty">No entries yet — be the first to leave feedback!</div>';
+      return;
+    }
+    const liked = gbGetLiked();
+    list.innerHTML = entries.map(e => {
+      const isLiked = liked.has(e.id);
+      return `<div class="gb-entry">
+        <div class="gb-entry-text">${esc(e.text)}</div>
+        <div class="gb-entry-footer">
+          <span class="gb-entry-time">${gbFormatTime(e.ts)}</span>
+          <button class="gb-like-btn${isLiked ? ' liked' : ''}" onclick="gbLike('${e.id}',this)">
+            ♥ <span class="gb-like-count">${e.likes || 0}</span>
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div class="gb-empty">Could not load entries.</div>';
+  }
+}
+
+async function gbLike(id, btn) {
+  const liked = gbGetLiked();
+  if (liked.has(id)) return;
+  try {
+    const r = await fetch(`/api/public/guestbook/${id}/like`, { method: 'POST' });
+    if (!r.ok) return;
+    liked.add(id);
+    gbSetLiked(liked);
+    btn.classList.add('liked');
+    const countEl = btn.querySelector('.gb-like-count');
+    if (countEl) countEl.textContent = parseInt(countEl.textContent || '0') + 1;
+  } catch(e) { console.warn('Like failed:', e.message); }
 }
 
 poll();
