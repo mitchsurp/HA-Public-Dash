@@ -558,7 +558,7 @@ function makeEntityCard(item, idx) {
   if (item.sub_entity_id) {
     const { value: subVal, unit: subUnit } = parseValueUnit(item.sub_state, item.sub_attributes);
     subHtml = `<div class="card-sub" data-sub-eid="${item.sub_entity_id}" style="width:100%">
-      <span class="card-sub-label">${item.sub_entity_id.split('.')[1]}</span>
+      <span class="card-sub-label">${item.sub_entity_label !== undefined ? item.sub_entity_label : item.sub_entity_id.split('.')[1]}</span>
       <span class="card-sub-value">${subVal}${subUnit}</span>
     </div>`;
   }
@@ -630,7 +630,7 @@ function makeLinkCard(item, idx) {
     if (item.sub_entity_id) {
       const { value: subVal, unit: subUnit } = parseValueUnit(item.sub_state, item.sub_attributes);
       subHtml = `<div class="card-sub" data-sub-eid="${item.sub_entity_id}" style="width:100%">
-        <span class="card-sub-label">${item.sub_entity_id.split('.')[1]}</span>
+        <span class="card-sub-label">${item.sub_entity_label !== undefined ? item.sub_entity_label : item.sub_entity_id.split('.')[1]}</span>
         <span class="card-sub-value">${sv}${su}</span>
       </div>`;
     }

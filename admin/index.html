@@ -863,7 +863,7 @@ function makeEntityItem(entity) {
   };
   const services = { light:'toggle', switch:'toggle', cover:'toggle', fan:'toggle', media_player:'media_play_pause', lock:'toggle', scene:'turn_on', script:'turn_on', automation:'trigger' };
   return { id: uid(), type: 'entity', entity_id: eid, label: entity.attributes?.friendly_name || eid,
-    icon: '', sub_entity_id: '', color: '#03a9f4', service: services[domain] || 'toggle',
+    icon: '', sub_entity_id: '', sub_entity_label: '', color: '#03a9f4', service: services[domain] || 'toggle',
     service_data: JSON.stringify({ entity_id: eid }), colSpan: 1, rowSpan: 1,
     labelAlign: 'left', labelPosition: 'default', contentJustify: 'flex-start', fontSize: '14', imageUrl: '', fillColor: '' };
 }
@@ -882,11 +882,11 @@ function addLabelItem() {
   openLayout();
 }
 function addColorItem() {
-  layoutItems.push({ id: uid(), type: 'entity', entity_id: '', label: '', fillColor: '#f59e0b', color: '#f59e0b', sub_entity_id: '', service: '', service_data: '{}', colSpan: 1, rowSpan: 1, labelAlign: 'center', labelPosition: 'default', contentJustify: 'center', fontSize: '14', imageUrl: '', icon: '' });
+  layoutItems.push({ id: uid(), type: 'entity', entity_id: '', label: '', fillColor: '#f59e0b', color: '#f59e0b', sub_entity_id: '', sub_entity_label: '', service: '', service_data: '{}', colSpan: 1, rowSpan: 1, labelAlign: 'center', labelPosition: 'default', contentJustify: 'center', fontSize: '14', imageUrl: '', icon: '' });
   openLayout();
 }
 function addLinkItem() {
-  layoutItems.push({ id: uid(), type: 'link', label: 'My Link', url: 'https://', favicon: '', color: '#f59e0b', sub_entity_id: '', colSpan: 1, rowSpan: 1, labelAlign: 'left', labelPosition: 'default', contentJustify: 'flex-start', fontSize: '14', imageUrl: '', openNewTab: true });
+  layoutItems.push({ id: uid(), type: 'link', label: 'My Link', url: 'https://', favicon: '', color: '#f59e0b', sub_entity_id: '', sub_entity_label: '', colSpan: 1, rowSpan: 1, labelAlign: 'left', labelPosition: 'default', contentJustify: 'flex-start', fontSize: '14', imageUrl: '', openNewTab: true });
   openLayout();
 }
 function addGaugeItem() {
@@ -1049,7 +1049,7 @@ function makePreviewCard(item) {
   let subHtml = '';
   if (item.sub_entity_id) {
     subHtml = `<div class="card-sub" style="width:100%">
-      <span class="card-sub-label">${item.sub_entity_id.split('.')[1]}</span>
+      <span class="card-sub-label">${item.sub_entity_label !== undefined ? item.sub_entity_label : item.sub_entity_id.split('.')[1]}</span>
       <span class="card-sub-value">...</span>
     </div>`;
   }
@@ -1136,6 +1136,7 @@ function selectItemForEdit(id) {
           <option value="bottom"${item.labelPosition === 'bottom' ? ' selected' : ''}>Bottom</option>
         </select>
         <label>Sub Entity</label><select onchange="ui('${item.id}','sub_entity_id',this.value)">${subEntityOptions}</select>
+        <label>Sub Entity Label</label><input type="text" value="${esc(item.sub_entity_label !== undefined ? item.sub_entity_label : (item.sub_entity_id ? item.sub_entity_id.split('.')[1] : ''))}" oninput="ui('${item.id}','sub_entity_label',this.value)" placeholder="Leave blank to hide">
         <label>Content Justify</label><select onchange="ui('${item.id}','contentJustify',this.value)">
           <option value="flex-start"${(item.contentJustify||'flex-start') === 'flex-start' ? ' selected' : ''}>Top</option>
           <option value="center"${item.contentJustify === 'center' ? ' selected' : ''}>Center</option>
@@ -1186,6 +1187,7 @@ function selectItemForEdit(id) {
         <option value="bottom"${item.labelPosition === 'bottom' ? ' selected' : ''}>Bottom</option>
       </select>
       <label>Sub Entity</label><select onchange="ui('${item.id}','sub_entity_id',this.value)">${subEntityOptions}</select>
+      <label>Sub Entity Label</label><input type="text" value="${esc(item.sub_entity_label !== undefined ? item.sub_entity_label : (item.sub_entity_id ? item.sub_entity_id.split('.')[1] : ''))}" oninput="ui('${item.id}','sub_entity_label',this.value)" placeholder="Leave blank to hide">
       <div class="check-row"><input type="checkbox" ${item.openNewTab !== false ? 'checked' : ''} onchange="ui('${item.id}','openNewTab',this.checked)"><label style="margin:0">Open in new tab</label></div>
       ${spanFields}`;
   }
@@ -1267,6 +1269,7 @@ function renderLayoutEditor() {
             <option value="bottom"${item.labelPosition === 'bottom' ? ' selected' : ''}>Bottom</option>
           </select></div>
           <div><label>Sub Entity <span style="font-size:10px">(at bottom)</span></label><select onchange="ui('${item.id}','sub_entity_id',this.value)">${subEntityOptions}</select></div>
+          <div><label>Sub Entity Label</label><input type="text" value="${esc(item.sub_entity_label !== undefined ? item.sub_entity_label : (item.sub_entity_id ? item.sub_entity_id.split('.')[1] : ''))}" oninput="ui('${item.id}','sub_entity_label',this.value)" placeholder="Leave blank to hide"></div>
           <div><label>Content Justify</label><select onchange="ui('${item.id}','contentJustify',this.value)">
             <option value="flex-start"${(item.contentJustify||'flex-start') === 'flex-start' ? ' selected' : ''}>Top</option>
             <option value="center"${item.contentJustify === 'center' ? ' selected' : ''}>Center</option>
@@ -1319,6 +1322,7 @@ function renderLayoutEditor() {
           <option value="bottom"${item.labelPosition === 'bottom' ? ' selected' : ''}>Bottom</option>
         </select></div>
         <div><label>Sub Entity <span style="font-size:10px">(at bottom)</span></label><select onchange="ui('${item.id}','sub_entity_id',this.value)">${subEntityOptions}</select></div>
+        <div><label>Sub Entity Label</label><input type="text" value="${esc(item.sub_entity_label !== undefined ? item.sub_entity_label : (item.sub_entity_id ? item.sub_entity_id.split('.')[1] : ''))}" oninput="ui('${item.id}','sub_entity_label',this.value)" placeholder="Leave blank to hide"></div>
         <div><label>Content Justify</label><select onchange="ui('${item.id}','contentJustify',this.value)">
           <option value="flex-start"${(item.contentJustify||'flex-start') === 'flex-start' ? ' selected' : ''}>Top</option>
           <option value="center"${item.contentJustify === 'center' ? ' selected' : ''}>Center</option>
