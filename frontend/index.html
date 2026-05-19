@@ -207,6 +207,10 @@
     justify-content: space-between;
     align-items: center;
   }
+  .card-sub-no-border {
+    border-top: none;
+    padding-top: 0;
+  }
   .card-sub-label {
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     margin-right: 8px;
@@ -557,7 +561,8 @@ function makeEntityCard(item, idx) {
   let subHtml = '';
   if (item.sub_entity_id) {
     const { value: subVal, unit: subUnit } = parseValueUnit(item.sub_state, item.sub_attributes);
-    subHtml = `<div class="card-sub" data-sub-eid="${item.sub_entity_id}" style="width:100%">
+    const subBorderClass = item.sub_entity_border === false ? ' card-sub-no-border' : '';
+    subHtml = `<div class="card-sub${subBorderClass}" data-sub-eid="${item.sub_entity_id}" style="width:100%">
       <span class="card-sub-label">${item.sub_entity_label !== undefined ? item.sub_entity_label : item.sub_entity_id.split('.')[1]}</span>
       <span class="card-sub-value">${subVal}${subUnit}</span>
     </div>`;
@@ -629,7 +634,8 @@ function makeLinkCard(item, idx) {
     let subHtml = '';
     if (item.sub_entity_id) {
       const { value: subVal, unit: subUnit } = parseValueUnit(item.sub_state, item.sub_attributes);
-      subHtml = `<div class="card-sub" data-sub-eid="${item.sub_entity_id}" style="width:100%">
+      const subBorderClass = item.sub_entity_border === false ? ' card-sub-no-border' : '';
+      subHtml = `<div class="card-sub${subBorderClass}" data-sub-eid="${item.sub_entity_id}" style="width:100%">
         <span class="card-sub-label">${item.sub_entity_label !== undefined ? item.sub_entity_label : item.sub_entity_id.split('.')[1]}</span>
         <span class="card-sub-value">${sv}${su}</span>
       </div>`;
