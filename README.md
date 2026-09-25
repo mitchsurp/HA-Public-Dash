@@ -1,4 +1,4 @@
-# Gemini Home Assistant Public Dashboard
+# HA-Public-Dash
 
 A modern, lightweight dashboard for Home Assistant with a native **Lovelace UI** look and feel. It features a full-screen **WYSIWYG Visual Editor** for easy configuration and a public dashboard designed for shared spaces (tablets, kiosks, etc.) with no login required.
 
@@ -16,8 +16,8 @@ A modern, lightweight dashboard for Home Assistant with a native **Lovelace UI**
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/gemini-homeassistant-public-dashboard.git
-cd gemini-homeassistant-public-dashboard
+git clone https://github.com/mitchsurp/HA-Public-Dash.git
+cd HA-Public-Dash
 
 # 2. Build & start using Docker Compose
 docker compose up -d --build
@@ -46,7 +46,7 @@ open http://localhost:3002/
 ## Configuration & Persistence
 
 - **Port Mapping**: Default is `3002`. Change this in `docker-compose.yml` if needed.
-- **Data Persistence**: All settings are saved in a Docker volume named `ha-dashboard-data`. To completely reset your installation, run `docker compose down -v`.
+- **Data Persistence**: All settings are saved in a Docker volume named `ha-public-dash-data`. To completely reset your installation, run `docker compose down -v`.
 
 ## Project Structure
 

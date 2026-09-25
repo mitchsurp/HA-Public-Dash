@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HA Dashboard · Admin</title>
+<title>HA-Public-Dash · Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Roboto:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
@@ -418,7 +418,7 @@
 </head>
 <body>
 <header>
-  <span class="logo">HA-DASH</span>
+  <span class="logo">HA-Public-Dash</span>
   <h1>/ admin</h1>
   <div class="header-spacer"></div>
   <button class="mode-toggle" id="mode-toggle" onclick="toggleMode()" title="Toggle dark/light mode">☀️</button>
@@ -542,7 +542,7 @@
 
   <label>Export Config <span style="font-size:10px;color:var(--muted)">(downloads JSON — access token excluded)</span></label>
   <div style="margin-bottom:16px">
-    <button class="secondary" onclick="exportConfig()">⬇ Download ha-dashboard.json</button>
+    <button class="secondary" onclick="exportConfig()">⬇ Download ha-public-dash.json</button>
   </div>
 
   <label>Import Config <span style="font-size:10px;color:var(--muted)">(merges layout into current install — token is never overwritten)</span></label>
@@ -1589,7 +1589,7 @@ function exportConfig() {
         const url = URL.createObjectURL(blob);
         const a   = document.createElement('a');
         const dt  = new Date().toISOString().slice(0, 10);
-        a.href = url; a.download = `ha-dashboard-${dt}.json`; a.click();
+        a.href = url; a.download = `ha-public-dash-${dt}.json`; a.click();
         URL.revokeObjectURL(url);
       });
   } else {
