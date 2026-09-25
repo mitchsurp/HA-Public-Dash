@@ -2,6 +2,16 @@
 
 A modern, lightweight dashboard for Home Assistant with a native **Lovelace UI** look and feel. It features a full-screen **WYSIWYG Visual Editor** for easy configuration and a public dashboard designed for shared spaces (tablets, kiosks, etc.) with no login required.
 
+## Preview
+
+| Dark Mode | Light Mode |
+|:---:|:---:|
+| ![Public Dashboard (Dark Mode)](screenshots/dashboard-dark.png) | ![Public Dashboard (Light Mode)](screenshots/dashboard-light.png) |
+
+<br>
+
+![WYSIWYG Visual Editor](screenshots/visual-editor.png)
+
 ## Key Features
 
 - **✨ Visual WYSIWYG Editor**: Click cards to edit properties in real-time with a live preview.
