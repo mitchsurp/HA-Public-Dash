@@ -320,7 +320,7 @@ app.get("/api/admin/export", requireAdmin, (req, res) => {
   const { token: _omit, ...safe } = cfg;
   const ts = new Date().toISOString().slice(0, 10);
   res.setHeader("Content-Type", "application/json");
-  res.setHeader("Content-Disposition", `attachment; filename="ha-dashboard-${ts}.json"`);
+  res.setHeader("Content-Disposition", `attachment; filename="ha-public-dash-${ts}.json"`);
   res.send(JSON.stringify(safe, null, 2));
 });
 
@@ -495,5 +495,5 @@ app.use("/", express.static("/app/frontend"));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
-  console.log(`ha-dashboard on :${PORT} | admin token: ${ADMIN_TOKEN ? "set" : "none"} | cron: ${loadConfig()?.backupCron || "off"}`)
+  console.log(`HA-Public-Dash on :${PORT} | admin token: ${ADMIN_TOKEN ? "set" : "none"} | cron: ${loadConfig()?.backupCron || "off"}`)
 );

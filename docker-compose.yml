@@ -1,16 +1,16 @@
 version: "3.9"
 
 services:
-  ha-dashboard:
+  ha-public-dash:
     build: .
-    container_name: ha-dashboard
+    container_name: ha-public-dash
     restart: unless-stopped
     ports:
       - "3002:3000"      # Change left side to remap host port, e.g. "8080:3000"
     volumes:
-      - ha-dashboard-data:/data   # Persists HA credentials + entity config
+      - ha-public-dash-data:/data   # Persists HA credentials + entity config
     environment:
       - NODE_ENV=production
 
 volumes:
-  ha-dashboard-data:
+  ha-public-dash-data:
