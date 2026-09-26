@@ -2,7 +2,7 @@
 
 A modern, lightweight dashboard for Home Assistant with a native **Lovelace UI** look and feel. It features a full-screen **WYSIWYG Visual Editor** for easy configuration and a public dashboard designed for shared spaces (tablets, kiosks, etc.) with no login required.
 
-It's designed to be public-facing, but you must protect the /admin folder in your reverse proxy or set a secret to lock access to it.
+It's designed to be public-facing, but you must protect the /admin directory in your reverse proxy or set a secret to lock access to it. Information on this can be found below.
 
 ## Preview
 
