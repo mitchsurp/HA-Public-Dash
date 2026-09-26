@@ -60,6 +60,19 @@ open http://localhost:3002/
 - **Port Mapping**: Default is `3002`. Change this in `docker-compose.yml` if needed.
 - **Data Persistence**: All settings are saved in a Docker volume named `ha-public-dash-data`. To completely reset your installation, run `docker compose down -v`.
 
+## Environment Variables
+
+The application supports the following environment variables, which can be configured in `docker-compose.yml` under `environment:` or passed via `-e` in `docker run`:
+
+| Variable | Required / Optional | Default | Description |
+|:---|:---:|:---:|:---|
+| `ADMIN_TOKEN` | Optional | *(none)* | A secret token used to protect the Admin Panel (`/admin/`) and admin API endpoints (`/api/admin/*`). When set, all admin requests require an `Authorization: Bearer <ADMIN_TOKEN>` header. You can enter this token in the Admin Panel under **Admin Security** so the UI automatically includes it in requests. If unset, the admin panel relies solely on network-level access control. |
+| `PORT` | Optional | `3000` | The internal port the Express server listens on inside the container. If customized, update the container side of the port mapping in `docker-compose.yml` accordingly (e.g. `3002:<PORT>`). |
+| `NODE_ENV` | Optional | `production` | Specifies the Node.js runtime environment (e.g., `production` or `development`). Setting this to `production` enables Express optimizations and suppresses verbose error stacks. |
+
+> [!NOTE]
+> Home Assistant connection details (HA instance URL and Long-Lived Access Token) are configured directly in the Admin Panel web UI and saved to the persistent `/data` volume, rather than passed as environment variables.
+
 ## Project Structure
 
 ```
